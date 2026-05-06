@@ -1,84 +1,73 @@
 /* =============================================
    HEAVEN BEAUTY PARLOUR — script.js
-   Cloudinary (image storage) + JSONBin (shared DB)
-   Photos visible to ALL visitors everywhere!
+   Cloudinary (images) + Supabase (shared DB)
+   Photos visible to ALL visitors!
    ============================================= */
 
 /* ---------- CONFIGURATION ---------- */
-const WP_NUMBER     = '919853448984';
-const CLOUD_NAME    = 'dw2bbebao';
-const UPLOAD_PRESET = 'ml_default';
+const WP_NUMBER      = '919853448984';
+const CLOUD_NAME     = 'dw2bbebao';
+const UPLOAD_PRESET  = 'ml_default';
+const SUPABASE_URL   = 'https://upfmeebhnecppnooanli.supabase.co';
+const SUPABASE_KEY   = 'sb_publishable_mKyZB0_6QusSwDO5_2yXvg_gYlIy7O2';
+const TABLE          = 'photos';
 
-/* JSONBin — shared database for photo URLs */
-const JSONBIN_KEY    = '$2a$10$JxDaTxfmbHwQ/ujrKwbRQegA1ojchupbpBqnX5X2ug5IULn7dWeVC';
-const JSONBIN_BIN_ID_KEY = 'heaven_bin_id'; // stored in localStorage after first creation
+const UPLOAD_URL     = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
+const DB_URL         = `${SUPABASE_URL}/rest/v1/${TABLE}`;
 
-const UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
+const DB_HEADERS = {
+  'apikey':        SUPABASE_KEY,
+  'Authorization': `Bearer ${SUPABASE_KEY}`,
+  'Content-Type':  'application/json',
+  'Prefer':        'return=representation'
+};
 
 /* ---------- SERVICE INFO ---------- */
 const serviceInfo = {
-  hair:  { title: 'Hair Styling',       desc: 'Expert cuts, blowouts, and glamour styling tailored to your personal look.',      wp: 'Hair Styling' },
+  hair:  { title: 'Hair Styling',        desc: 'Expert cuts, blowouts, and glamour styling tailored to your personal look.',     wp: 'Hair Styling' },
   skin:  { title: 'Skin Care & Facials', desc: 'Deep cleansing, glowing facials, and anti-aging treatments for flawless skin.',  wp: 'Skin Care / Facial' },
   nails: { title: 'Nail Care',           desc: 'Manicures, pedicures, and nail art to complete your polished finish.',           wp: 'Nail Care' }
 };
 
 /* ---------- STATE ---------- */
 let pendingFiles    = [];
-let storedPhotos    = [];   // [{url, public_id, addedAt}, ...]
+let storedPhotos    = [];
 let makeupOpen      = false;
 let bookingFormOpen = false;
 let lightboxIndex   = 0;
 
 /* =============================================
-   JSONBIN HELPERS
+   SUPABASE HELPERS
    ============================================= */
-const JSONBIN_BASE = 'https://api.jsonbin.io/v3';
-
-async function getBinId() {
-  /* Check if we already created a bin before */
-  let binId = localStorage.getItem(JSONBIN_BIN_ID_KEY);
-  if (binId) return binId;
-
-  /* First time: create a new bin */
-  const res = await fetch(`${JSONBIN_BASE}/b`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Master-Key': JSONBIN_KEY,
-      'X-Bin-Name':   'heaven_makeup_gallery',
-      'X-Bin-Private': 'false'
-    },
-    body: JSON.stringify({ photos: [] })
-  });
-  const data = await res.json();
-  binId = data.metadata.id;
-  localStorage.setItem(JSONBIN_BIN_ID_KEY, binId);
-  return binId;
-}
-
-async function readPhotos() {
+async function dbGetPhotos() {
   try {
-    const binId = await getBinId();
-    const res   = await fetch(`${JSONBIN_BASE}/b/${binId}/latest`, {
-      headers: { 'X-Master-Key': JSONBIN_KEY }
+    const res  = await fetch(`${DB_URL}?select=id,url,created_at&order=created_at.asc`, {
+      headers: DB_HEADERS
     });
-    const data = await res.json();
-    return data.record.photos || [];
+    if (!res.ok) throw new Error(await res.text());
+    return await res.json();
   } catch (e) {
+    console.error('Load error:', e);
     return [];
   }
 }
 
-async function writePhotos(photos) {
-  const binId = await getBinId();
-  await fetch(`${JSONBIN_BASE}/b/${binId}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Master-Key': JSONBIN_KEY
-    },
-    body: JSON.stringify({ photos })
+async function dbAddPhoto(url) {
+  const res = await fetch(DB_URL, {
+    method:  'POST',
+    headers: DB_HEADERS,
+    body:    JSON.stringify({ url })
   });
+  if (!res.ok) throw new Error(await res.text());
+  return await res.json();
+}
+
+async function dbDeletePhoto(id) {
+  const res = await fetch(`${DB_URL}?id=eq.${id}`, {
+    method:  'DELETE',
+    headers: DB_HEADERS
+  });
+  if (!res.ok) throw new Error(await res.text());
 }
 
 /* =============================================
@@ -156,7 +145,8 @@ function openServicePanel(el) {
     document.getElementById('svcPanelDesc').textContent  = info.desc;
     const wpBtn = document.getElementById('svcWpBtn');
     wpBtn.href   = buildWpUrl(`Hi! I'd like to book *${info.wp}* at Heaven Beauty Parlour, Kuruda, Baleshwar. Please share available slots.`);
-    wpBtn.target = '_blank'; wpBtn.rel = 'noopener';
+    wpBtn.target = '_blank';
+    wpBtn.rel    = 'noopener';
     quickPanel.style.display = 'block';
     setTimeout(() => quickPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
   }
@@ -173,12 +163,12 @@ function switchTab(tab) {
 }
 
 /* =============================================
-   LOAD GALLERY FROM JSONBIN
+   LOAD GALLERY FROM SUPABASE
    ============================================= */
 async function loadGallery() {
   const grid = document.getElementById('photoGrid');
   grid.innerHTML = `<div class="loading-photos"><span>⏳ Loading photos…</span></div>`;
-  storedPhotos = await readPhotos();
+  storedPhotos = await dbGetPhotos();
   renderGallery();
 }
 
@@ -198,25 +188,29 @@ function renderGallery() {
   }
   grid.innerHTML = storedPhotos.map((photo, i) => `
     <div class="photo-item">
-      <img src="${photo.url}" alt="Makeup photo ${i + 1}" loading="lazy" onclick="openLightbox(${i})" style="cursor:pointer;" />
+      <img src="${photo.url}" alt="Makeup photo ${i + 1}" loading="lazy"
+           onclick="openLightbox(${i})" style="cursor:pointer;" />
       <div class="photo-overlay">
         <button class="share-btn" onclick="sharePhoto(${i})">&#128257; Share</button>
-        <button class="del-btn"   onclick="deletePhoto(${i})" title="Delete">&#128465;</button>
+        <button class="del-btn"   onclick="deletePhoto(${photo.id}, ${i})" title="Delete">&#128465;</button>
       </div>
     </div>
   `).join('');
 }
 
 /* =============================================
-   DELETE PHOTO
+   DELETE PHOTO (from Supabase + local array)
    ============================================= */
-async function deletePhoto(i) {
-  if (!confirm('Remove this photo from the gallery for everyone?')) return;
+async function deletePhoto(id, i) {
+  if (!confirm('Delete this photo for ALL visitors?')) return;
   storedPhotos.splice(i, 1);
   renderGallery();
-  showToast('Deleting…');
-  await writePhotos(storedPhotos);
-  showToast('Photo deleted for all visitors.');
+  try {
+    await dbDeletePhoto(id);
+    showToast('Photo deleted for everyone.');
+  } catch(e) {
+    showToast('Error deleting. Try again.');
+  }
 }
 
 /* =============================================
@@ -225,16 +219,22 @@ async function deletePhoto(i) {
 function sharePhoto(i) {
   const url = storedPhotos[i].url;
   if (navigator.share) {
-    navigator.share({ title: 'Heaven Beauty Parlour – Makeup Look', text: 'Check out this gorgeous look from Heaven Beauty Parlour! 💄', url }).catch(() => {});
+    navigator.share({
+      title: 'Heaven Beauty Parlour – Makeup Look',
+      text:  'Check out this gorgeous look from Heaven Beauty Parlour, Baleshwar! 💄',
+      url
+    }).catch(() => {});
     return;
   }
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(url).then(() => showToast('Photo link copied! Share it anywhere.')).catch(() => showToast('Share the page URL manually.'));
+    navigator.clipboard.writeText(url)
+      .then(() => showToast('Photo link copied! Share it anywhere.'))
+      .catch(() => showToast('Share the page URL manually.'));
   }
 }
 
 /* =============================================
-   FILE PREVIEW (before upload)
+   FILE PREVIEW
    ============================================= */
 function handleFiles(files) {
   pendingFiles = Array.from(files);
@@ -253,7 +253,7 @@ function handleFiles(files) {
 }
 
 /* =============================================
-   UPLOAD TO CLOUDINARY → SAVE URL TO JSONBIN
+   UPLOAD: Cloudinary → save URL to Supabase
    ============================================= */
 async function uploadPhotos() {
   if (!pendingFiles.length) return;
@@ -264,24 +264,37 @@ async function uploadPhotos() {
 
   for (const file of pendingFiles) {
     btn.textContent = `Uploading ${uploaded + 1} / ${pendingFiles.length}…`;
+
+    /* 1. Upload image to Cloudinary */
     const fd = new FormData();
     fd.append('file',          file);
     fd.append('upload_preset', UPLOAD_PRESET);
     fd.append('folder',        'heaven_beauty');
+
+    let imageUrl = null;
     try {
       const res  = await fetch(UPLOAD_URL, { method: 'POST', body: fd });
       const data = await res.json();
-      if (data.secure_url) {
-        storedPhotos.push({ url: data.secure_url, public_id: data.public_id, addedAt: Date.now() });
-        uploaded++;
-      } else { errors.push(file.name); }
-    } catch(e) { errors.push(file.name); }
-  }
+      if (data.secure_url) imageUrl = data.secure_url;
+      else errors.push(file.name);
+    } catch(e) {
+      errors.push(file.name);
+      continue;
+    }
 
-  /* Save all URLs to JSONBin so everyone sees them */
-  if (uploaded > 0) {
-    btn.textContent = 'Saving to cloud database…';
-    await writePhotos(storedPhotos);
+    /* 2. Save URL to Supabase so everyone sees it */
+    if (imageUrl) {
+      try {
+        btn.textContent = `Saving to database…`;
+        const rows = await dbAddPhoto(imageUrl);
+        const newPhoto = Array.isArray(rows) ? rows[0] : rows;
+        storedPhotos.push({ id: newPhoto.id, url: imageUrl, created_at: newPhoto.created_at });
+        uploaded++;
+      } catch(e) {
+        console.error('Supabase save error:', e);
+        errors.push(file.name);
+      }
+    }
   }
 
   /* Reset UI */
@@ -294,9 +307,10 @@ async function uploadPhotos() {
   pendingFiles = [];
 
   showToast(errors.length
-    ? `${uploaded} uploaded, ${errors.length} failed.`
+    ? `${uploaded} uploaded, ${errors.length} failed. Check file size.`
     : `${uploaded} photo(s) live! Visible to ALL visitors now. 🎉`
   );
+
   switchTab('gallery');
   renderGallery();
 }
@@ -320,7 +334,8 @@ function updateLightbox() {
   img.style.animation = 'none'; img.offsetHeight; img.style.animation = '';
   img.src = photo.url;
   img.alt = `Makeup photo ${lightboxIndex + 1}`;
-  document.getElementById('lightboxCounter').textContent = `${lightboxIndex + 1} / ${storedPhotos.length}`;
+  document.getElementById('lightboxCounter').textContent =
+    `${lightboxIndex + 1} / ${storedPhotos.length}`;
   const show = storedPhotos.length > 1;
   document.getElementById('lightboxPrev').style.display = show ? 'flex' : 'none';
   document.getElementById('lightboxNext').style.display = show ? 'flex' : 'none';
@@ -347,7 +362,8 @@ document.addEventListener('keydown', e => {
 let toastTimer = null;
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg; t.style.display = 'block';
+  t.textContent   = msg;
+  t.style.display = 'block';
   if (toastTimer) clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3500);
 }
