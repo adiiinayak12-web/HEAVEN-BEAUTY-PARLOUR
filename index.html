@@ -10,9 +10,7 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-
-  <!-- NAVIGATION -->
-  <header class="site-header" id="siteHeader">
+  <header class="site-header">
     <div class="container header-inner">
       <a href="#home" class="brand">Heaven Beauty Parlour</a>
       <nav class="main-nav" id="mainNav">
@@ -26,10 +24,7 @@
       </button>
     </div>
   </header>
-
   <main>
-
-    <!-- HERO -->
     <section class="hero" id="home">
       <div class="container hero-content">
         <div class="hero-text">
@@ -45,66 +40,51 @@
           <p class="hero-tag">This month's special</p>
           <h2>Signature Facial Treatment</h2>
           <p>Our signature facial restores radiance and nourishes your skin with premium products and expert care.</p>
-          <a class="btn btn-primary btn-sm" href="https://wa.me/919853448984?text=Hi!%20I'd%20like%20to%20book%20the%20*Signature%20Facial%20Treatment*%20at%20Heaven%20Beauty%20Parlour.%20Please%20let%20me%20know%20available%20slots." target="_blank" rel="noopener">Book via WhatsApp</a>
+          <a class="btn btn-primary btn-sm" href="https://wa.me/919853448984?text=Hi!%20I%20would%20like%20to%20book%20the%20Signature%20Facial%20at%20Heaven%20Beauty%20Parlour.%20Please%20share%20available%20slots." target="_blank" rel="noopener">Book via WhatsApp</a>
         </div>
       </div>
     </section>
-
-    <!-- SERVICES -->
     <section class="services" id="services">
       <div class="container section-heading">
         <p class="eyebrow">Our Services</p>
         <h2>Beauty rituals crafted for you</h2>
       </div>
       <div class="container service-grid">
-
         <article class="service-card" data-service="hair" onclick="openServicePanel(this)">
           <div class="svc-icon">&#9986;&#65039;</div>
           <h3>Hair Styling</h3>
           <p>Expert cuts, blowouts, and glamour styling tailored to your personal look.</p>
           <span class="svc-badge">View &amp; Book</span>
         </article>
-
-        <article class="service-card makeup-card" id="makeupCard" data-service="makeup" onclick="openServicePanel(this)">
+        <article class="service-card" data-service="makeup" onclick="openServicePanel(this)">
           <div class="svc-icon">&#128144;</div>
           <h3>Makeup Artistry</h3>
           <p>Bridal, evening, and editorial makeup that highlights your natural beauty.</p>
           <span class="svc-badge">Photos + Book</span>
         </article>
-
         <article class="service-card" data-service="skin" onclick="openServicePanel(this)">
           <div class="svc-icon">&#127774;</div>
           <h3>Skin Care</h3>
           <p>Deep cleansing, glowing facials, and anti-aging treatments for flawless skin.</p>
           <span class="svc-badge">View &amp; Book</span>
         </article>
-
         <article class="service-card" data-service="nails" onclick="openServicePanel(this)">
           <div class="svc-icon">&#10024;</div>
           <h3>Nail Care</h3>
           <p>Manicures, pedicures, and nail art to complete your polished finish.</p>
           <span class="svc-badge">View &amp; Book</span>
         </article>
-
       </div>
-
-      <!-- MAKEUP GALLERY PANEL -->
       <div class="container">
         <div class="makeup-panel" id="makeupPanel" style="display:none;">
           <div class="makeup-panel-header">
             <h3>Makeup Artistry Gallery</h3>
           </div>
-
-          <!-- GALLERY VIEW -->
-          <div id="photoGrid" class="gallery-photos">
-            <!-- Photos hardcoded in script.js -->
-          </div>
+          <div class="gallery-photos" id="photoGrid"></div>
           <div class="panel-cta">
-            <a class="btn btn-primary" href="https://wa.me/919853448984?text=Hi!%20I'd%20like%20to%20book%20a%20*Makeup%20Artistry*%20appointment%20at%20Heaven%20Beauty%20Parlour.%20Please%20let%20me%20know%20available%20slots." target="_blank" rel="noopener">Book Makeup via WhatsApp</a>
+            <a class="btn btn-primary" href="https://wa.me/919853448984?text=Hi!%20I%20would%20like%20to%20book%20Makeup%20Artistry%20at%20Heaven%20Beauty%20Parlour.%20Please%20share%20available%20slots." target="_blank" rel="noopener">Book Makeup via WhatsApp</a>
           </div>
         </div>
-
-        <!-- OTHER SERVICE QUICK PANEL -->
         <div class="svc-quick-panel" id="svcQuickPanel" style="display:none;">
           <div class="svc-quick-inner">
             <div>
@@ -112,15 +92,13 @@
               <p id="svcPanelDesc"></p>
             </div>
             <div class="svc-quick-actions">
-              <a class="btn btn-primary" id="svcWpBtn" target="_blank" rel="noopener">Book via WhatsApp</a>
+              <a class="btn btn-primary" id="svcWpBtn" href="#" target="_blank" rel="noopener">Book via WhatsApp</a>
               <a class="btn btn-secondary" href="#booking">Request Callback</a>
             </div>
           </div>
         </div>
       </div>
     </section>
-
-    <!-- ABOUT -->
     <section class="about" id="about">
       <div class="container about-grid">
         <div class="about-text">
@@ -135,12 +113,10 @@
           </ul>
         </div>
         <div class="about-image">
-          <div class="image-overlay">Feel radiant, refreshed, and confident — every visit.</div>
+          <div class="image-overlay">Feel radiant, refreshed, and confident every visit.</div>
         </div>
       </div>
     </section>
-
-    <!-- GALLERY -->
     <section class="gallery" id="gallery">
       <div class="container section-heading">
         <p class="eyebrow">Salon Gallery</p>
@@ -161,26 +137,22 @@
         </article>
       </div>
     </section>
-
-    <!-- BOOKING -->
     <section class="booking" id="booking">
       <div class="container booking-grid">
-
         <div class="booking-info">
-          <p class="eyebrow" style="color: var(--gold);">Book Your Visit</p>
+          <p class="eyebrow" style="color:var(--gold);">Book Your Visit</p>
           <h2>Ready for your heavenly makeover?</h2>
-          <p>Choose your preferred way to book. WhatsApp is fastest — we typically reply within minutes.</p>
-
+          <p>Choose your preferred way to book. WhatsApp is fastest.</p>
           <div class="info-cards">
             <div class="info-card">
               <strong>Salon Hours</strong>
-              <p>Monday – Sunday</p>
-              <p>9:00 AM – 9:00 PM</p>
+              <p>Monday to Sunday</p>
+              <p>9:00 AM to 9:00 PM</p>
             </div>
             <div class="info-card">
               <strong>Location</strong>
               <p>Kuruda, Baleshwar</p>
-              <p>Odisha – 756056</p>
+              <p>Odisha 756056</p>
             </div>
             <div class="info-card">
               <strong>Phone / WhatsApp</strong>
@@ -188,14 +160,9 @@
             </div>
           </div>
         </div>
-
         <div class="booking-options">
           <p class="options-label">Choose booking method</p>
-
-          <!-- WhatsApp Quick Book -->
-          <a class="booking-option wp-option"
-            href="https://wa.me/919853448984?text=Hi!%20I'd%20like%20to%20book%20an%20appointment%20at%20Heaven%20Beauty%20Parlour%2C%20Kuruda%2C%20Baleshwar.%20Please%20let%20me%20know%20available%20services%20and%20slots."
-            target="_blank" rel="noopener">
+          <a class="booking-option" href="https://wa.me/919853448984?text=Hi!%20I%20would%20like%20to%20book%20an%20appointment%20at%20Heaven%20Beauty%20Parlour%2C%20Kuruda%2C%20Baleshwar.%20Please%20let%20me%20know%20available%20slots." target="_blank" rel="noopener">
             <div class="option-icon wp-icon">&#128172;</div>
             <div class="option-info">
               <h4>WhatsApp (Fastest)</h4>
@@ -203,9 +170,7 @@
             </div>
             <span class="option-arrow">&#8599;</span>
           </a>
-
-          <!-- Call -->
-          <a class="booking-option call-option" href="tel:+919853448984">
+          <a class="booking-option" href="tel:+919853448984">
             <div class="option-icon call-icon">&#128222;</div>
             <div class="option-info">
               <h4>Call Us Directly</h4>
@@ -213,17 +178,14 @@
             </div>
             <span class="option-arrow">&#8599;</span>
           </a>
-
-          <!-- Inline Form -->
-          <div class="booking-option form-option" onclick="toggleBookingForm()">
+          <div class="booking-option" onclick="toggleBookingForm()" style="cursor:pointer;">
             <div class="option-icon form-icon">&#128203;</div>
             <div class="option-info">
               <h4>Request via Form</h4>
-              <p>We'll call you back to confirm</p>
+              <p>We will call you back to confirm</p>
             </div>
-            <span class="option-arrow" id="formArrow">&#43;</span>
+            <span class="option-arrow" id="formArrow">+</span>
           </div>
-
           <div class="inline-form" id="inlineBookingForm" style="display:none;">
             <div class="form-row two-col">
               <div class="form-field">
@@ -261,51 +223,27 @@
             <button class="btn btn-gold" onclick="submitFormWP()">Send via WhatsApp &#128172;</button>
             <p class="form-note">This opens WhatsApp with your details pre-filled.</p>
           </div>
-
         </div>
       </div>
     </section>
-
   </main>
-
-  <!-- FOOTER -->
   <footer class="site-footer">
     <div class="container footer-inner">
       <p>&copy; 2026 Heaven Beauty Parlour. All rights reserved.</p>
-      <p>Kuruda, Baleshwar, Odisha – 756056 &bull; +91 98534 48984</p>
+      <p>Kuruda, Baleshwar, Odisha 756056 &bull; +91 98534 48984</p>
     </div>
   </footer>
-
-  <!-- TOAST -->
   <div class="toast" id="toast" style="display:none;"></div>
-
-  <!-- LIGHTBOX OVERLAY -->
   <div class="lightbox-overlay" id="lightboxOverlay" onclick="lightboxBgClick(event)">
-
-    <!-- Back button top-left -->
-    <button class="lightbox-back" id="lightboxBack" onclick="closeLightbox()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 18 9 12 15 6"></polyline>
-      </svg>
-      Back
-    </button>
-
-    <!-- Counter top-right -->
+    <button class="lightbox-back" onclick="closeLightbox()">&#8592; Back</button>
     <span class="lightbox-counter" id="lightboxCounter"></span>
-
-    <!-- Prev / Next -->
     <button class="lightbox-prev" id="lightboxPrev" onclick="lightboxNav(-1)">&#8249;</button>
     <button class="lightbox-next" id="lightboxNext" onclick="lightboxNav(1)">&#8250;</button>
-
-    <!-- Image -->
     <div class="lightbox-img-wrap" id="lightboxImgWrap">
       <img id="lightboxImg" src="" alt="Makeup photo" />
     </div>
-
-    <!-- Caption -->
-    <div class="lightbox-caption" id="lightboxCaption">Heaven Beauty Parlour &mdash; Makeup Artistry</div>
+    <div class="lightbox-caption">Heaven Beauty Parlour &mdash; Makeup Artistry</div>
   </div>
-
   <script src="script.js"></script>
 </body>
 </html>
