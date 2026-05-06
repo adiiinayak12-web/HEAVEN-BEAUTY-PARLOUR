@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Heaven Beauty Parlour</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- NAVIGATION -->
+  <header class="site-header" id="siteHeader">
+    <div class="container header-inner">
+      <a href="#home" class="brand">Heaven Beauty Parlour</a>
+      <nav class="main-nav" id="mainNav">
+        <a href="#services">Services</a>
+        <a href="#about">About</a>
+        <a href="#gallery">Gallery</a>
+        <a href="#booking">Book Now</a>
+      </nav>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- HERO -->
+    <section class="hero" id="home">
+      <div class="container hero-content">
+        <div class="hero-text">
+          <p class="eyebrow">Luxury Beauty Experience</p>
+          <h1>Welcome to Heaven Beauty Parlour</h1>
+          <p>Elevate your beauty with exquisite skincare, styling, and pampering services designed for every occasion.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#booking">Book Appointment</a>
+            <a class="btn btn-secondary" href="#services">View Services</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-tag">This month's special</p>
+          <h2>Signature Facial Treatment</h2>
+          <p>Our signature facial restores radiance and nourishes your skin with premium products and expert care.</p>
+          <a class="btn btn-primary btn-sm" href="https://wa.me/919853448984?text=Hi!%20I'd%20like%20to%20book%20the%20*Signature%20Facial%20Treatment*%20at%20Heaven%20Beauty%20Parlour.%20Please%20let%20me%20know%20available%20slots." target="_blank" rel="noopener">Book via WhatsApp</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section class="services" id="services">
+      <div class="container section-heading">
+        <p class="eyebrow">Our Services</p>
+        <h2>Beauty rituals crafted for you</h2>
+      </div>
+      <div class="container service-grid">
+
+        <article class="service-card" data-service="hair" onclick="openServicePanel(this)">
+          <div class="svc-icon">&#9986;&#65039;</div>
+          <h3>Hair Styling</h3>
+          <p>Expert cuts, blowouts, and glamour styling tailored to your personal look.</p>
+          <span class="svc-badge">View &amp; Book</span>
+        </article>
+
+        <article class="service-card makeup-card" id="makeupCard" data-service="makeup" onclick="openServicePanel(this)">
+          <div class="svc-icon">&#128144;</div>
+          <h3>Makeup Artistry</h3>
+          <p>Bridal, evening, and editorial makeup that highlights your natural beauty.</p>
+          <span class="svc-badge">Photos + Book</span>
+        </article>
+
+        <article class="service-card" data-service="skin" onclick="openServicePanel(this)">
+          <div class="svc-icon">&#127774;</div>
+          <h3>Skin Care</h3>
+          <p>Deep cleansing, glowing facials, and anti-aging treatments for flawless skin.</p>
+          <span class="svc-badge">View &amp; Book</span>
+        </article>
+
+        <article class="service-card" data-service="nails" onclick="openServicePanel(this)">
+          <div class="svc-icon">&#10024;</div>
+          <h3>Nail Care</h3>
+          <p>Manicures, pedicures, and nail art to complete your polished finish.</p>
+          <span class="svc-badge">View &amp; Book</span>
+        </article>
+
+      </div>
+
+      <!-- MAKEUP GALLERY PANEL -->
+      <div class="container">
+        <div class="makeup-panel" id="makeupPanel" style="display:none;">
+          <div class="makeup-panel-header">
+            <h3>Makeup Artistry Gallery</h3>
+            <div class="panel-tabs">
+              <button class="tab-btn active" id="tabGalleryBtn" onclick="switchTab('gallery')">Gallery</button>
+              <button class="tab-btn" id="tabAdminBtn" onclick="switchTab('admin')">Admin Upload</button>
+            </div>
+          </div>
+
+          <!-- GALLERY VIEW -->
+          <div id="tabGallery">
+            <div class="gallery-photos" id="photoGrid">
+              <div class="empty-gallery">
+                <div class="empty-icon">&#127752;</div>
+                <p>No makeup photos yet.</p>
+                <p class="empty-hint">Switch to Admin Upload tab to add your photos.</p>
+              </div>
+            </div>
+            <div class="panel-cta">
+              <a class="btn btn-primary" href="https://wa.me/919853448984?text=Hi!%20I'd%20like%20to%20book%20a%20*Makeup%20Artistry*%20appointment%20at%20Heaven%20Beauty%20Parlour.%20Please%20let%20me%20know%20available%20slots." target="_blank" rel="noopener">Book Makeup via WhatsApp</a>
+            </div>
+          </div>
+
+          <!-- ADMIN UPLOAD VIEW -->
+          <div id="tabAdmin" style="display:none;">
+            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('photoInput').click()">
+              <input type="file" id="photoInput" multiple accept="image/*" onchange="handleFiles(this.files)" />
+              <div class="upload-icon">&#128247;</div>
+              <p>Click to select makeup photos</p>
+              <p class="upload-hint">JPG, PNG, WEBP &bull; Multiple files allowed</p>
+            </div>
+            <div class="preview-grid" id="previewGrid" style="display:none;"></div>
+            <button class="btn btn-primary upload-confirm-btn" id="uploadBtn" style="display:none;" onclick="uploadPhotos()">Save Photos to Gallery</button>
+            <p class="upload-note">Photos upload to the cloud — visible to ALL visitors instantly.</p>
+          </div>
+        </div>
+
+        <!-- OTHER SERVICE QUICK PANEL -->
+        <div class="svc-quick-panel" id="svcQuickPanel" style="display:none;">
+          <div class="svc-quick-inner">
+            <div>
+              <h3 id="svcPanelTitle"></h3>
+              <p id="svcPanelDesc"></p>
+            </div>
+            <div class="svc-quick-actions">
+              <a class="btn btn-primary" id="svcWpBtn" target="_blank" rel="noopener">Book via WhatsApp</a>
+              <a class="btn btn-secondary" href="#booking">Request Callback</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="about" id="about">
+      <div class="container about-grid">
+        <div class="about-text">
+          <p class="eyebrow">About Heaven</p>
+          <h2>Where beauty meets comfort</h2>
+          <p>At Heaven Beauty Parlour, we create a sanctuary for self-care. Our team combines professional expertise with a warm atmosphere to deliver elegant beauty services for every client in Baleshwar.</p>
+          <ul class="about-list">
+            <li>Experienced beauty therapists</li>
+            <li>Premium products and hygiene standards</li>
+            <li>Customized beauty consultations</li>
+            <li>Bridal &amp; event packages available</li>
+          </ul>
+        </div>
+        <div class="about-image">
+          <div class="image-overlay">Feel radiant, refreshed, and confident — every visit.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GALLERY -->
+    <section class="gallery" id="gallery">
+      <div class="container section-heading">
+        <p class="eyebrow">Salon Gallery</p>
+        <h2>A glimpse of our style</h2>
+      </div>
+      <div class="container gallery-grid">
+        <article class="gallery-item">
+          <img src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=600&auto=format" alt="Elegant makeup" loading="lazy" />
+          <div class="gallery-caption">Elegant makeup</div>
+        </article>
+        <article class="gallery-item">
+          <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&auto=format" alt="Stylish hair design" loading="lazy" />
+          <div class="gallery-caption">Stylish hair design</div>
+        </article>
+        <article class="gallery-item">
+          <img src="https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=600&auto=format" alt="Relaxing facial care" loading="lazy" />
+          <div class="gallery-caption">Relaxing facial care</div>
+        </article>
+      </div>
+    </section>
+
+    <!-- BOOKING -->
+    <section class="booking" id="booking">
+      <div class="container booking-grid">
+
+        <div class="booking-info">
+          <p class="eyebrow" style="color: var(--gold);">Book Your Visit</p>
+          <h2>Ready for your heavenly makeover?</h2>
+          <p>Choose your preferred way to book. WhatsApp is fastest — we typically reply within minutes.</p>
+
+          <div class="info-cards">
+            <div class="info-card">
+              <strong>Salon Hours</strong>
+              <p>Monday – Sunday</p>
+              <p>9:00 AM – 9:00 PM</p>
+            </div>
+            <div class="info-card">
+              <strong>Location</strong>
+              <p>Kuruda, Baleshwar</p>
+              <p>Odisha – 756056</p>
+            </div>
+            <div class="info-card">
+              <strong>Phone / WhatsApp</strong>
+              <p>+91 98534 48984</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="booking-options">
+          <p class="options-label">Choose booking method</p>
+
+          <!-- WhatsApp Quick Book -->
+          <a class="booking-option wp-option"
+            href="https://wa.me/919853448984?text=Hi!%20I'd%20like%20to%20book%20an%20appointment%20at%20Heaven%20Beauty%20Parlour%2C%20Kuruda%2C%20Baleshwar.%20Please%20let%20me%20know%20available%20services%20and%20slots."
+            target="_blank" rel="noopener">
+            <div class="option-icon wp-icon">&#128172;</div>
+            <div class="option-info">
+              <h4>WhatsApp (Fastest)</h4>
+              <p><span class="status-dot"></span>Usually replies in 5 minutes</p>
+            </div>
+            <span class="option-arrow">&#8599;</span>
+          </a>
+
+          <!-- Call -->
+          <a class="booking-option call-option" href="tel:+919853448984">
+            <div class="option-icon call-icon">&#128222;</div>
+            <div class="option-info">
+              <h4>Call Us Directly</h4>
+              <p>+91 98534 48984</p>
+            </div>
+            <span class="option-arrow">&#8599;</span>
+          </a>
+
+          <!-- Inline Form -->
+          <div class="booking-option form-option" onclick="toggleBookingForm()">
+            <div class="option-icon form-icon">&#128203;</div>
+            <div class="option-info">
+              <h4>Request via Form</h4>
+              <p>We'll call you back to confirm</p>
+            </div>
+            <span class="option-arrow" id="formArrow">&#43;</span>
+          </div>
+
+          <div class="inline-form" id="inlineBookingForm" style="display:none;">
+            <div class="form-row two-col">
+              <div class="form-field">
+                <label for="bName">Your Name</label>
+                <input id="bName" type="text" placeholder="Full name" />
+              </div>
+              <div class="form-field">
+                <label for="bPhone">Phone / WhatsApp</label>
+                <input id="bPhone" type="tel" placeholder="+91 ..." />
+              </div>
+            </div>
+            <div class="form-row two-col">
+              <div class="form-field">
+                <label for="bService">Service</label>
+                <select id="bService">
+                  <option>Makeup Artistry</option>
+                  <option>Hair Styling</option>
+                  <option>Skin Care / Facial</option>
+                  <option>Nail Care</option>
+                  <option>Bridal Package</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label for="bDate">Preferred Date</label>
+                <input id="bDate" type="date" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label for="bMsg">Message (optional)</label>
+                <input id="bMsg" type="text" placeholder="Any special requests..." />
+              </div>
+            </div>
+            <button class="btn btn-gold" onclick="submitFormWP()">Send via WhatsApp &#128172;</button>
+            <p class="form-note">This opens WhatsApp with your details pre-filled.</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; 2026 Heaven Beauty Parlour. All rights reserved.</p>
+      <p>Kuruda, Baleshwar, Odisha – 756056 &bull; +91 98534 48984</p>
+    </div>
+  </footer>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast" style="display:none;"></div>
+
+  <!-- LIGHTBOX OVERLAY -->
+  <div class="lightbox-overlay" id="lightboxOverlay" onclick="lightboxBgClick(event)">
+
+    <!-- Back button top-left -->
+    <button class="lightbox-back" id="lightboxBack" onclick="closeLightbox()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+      Back
+    </button>
+
+    <!-- Counter top-right -->
+    <span class="lightbox-counter" id="lightboxCounter"></span>
+
+    <!-- Prev / Next -->
+    <button class="lightbox-prev" id="lightboxPrev" onclick="lightboxNav(-1)">&#8249;</button>
+    <button class="lightbox-next" id="lightboxNext" onclick="lightboxNav(1)">&#8250;</button>
+
+    <!-- Image -->
+    <div class="lightbox-img-wrap" id="lightboxImgWrap">
+      <img id="lightboxImg" src="" alt="Makeup photo" />
+    </div>
+
+    <!-- Caption -->
+    <div class="lightbox-caption" id="lightboxCaption">Heaven Beauty Parlour &mdash; Makeup Artistry</div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
