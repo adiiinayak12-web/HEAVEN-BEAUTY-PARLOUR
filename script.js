@@ -1,46 +1,99 @@
 /* =============================================
    HEAVEN BEAUTY PARLOUR — script.js
-   Cloudinary cloud gallery (visible to ALL visitors)
+   Cloudinary (image storage) + JSONBin (shared DB)
+   Photos visible to ALL visitors everywhere!
    ============================================= */
 
 /* ---------- CONFIGURATION ---------- */
-const WP_NUMBER        = '919853448984';
-const CLOUD_NAME       = 'dw2bbebao';
-const UPLOAD_PRESET    = 'ml_default';
-const GALLERY_TAG      = 'heaven_makeup';
+const WP_NUMBER     = '919853448984';
+const CLOUD_NAME    = 'dw2bbebao';
+const UPLOAD_PRESET = 'ml_default';
+
+/* JSONBin — shared database for photo URLs */
+const JSONBIN_KEY    = '$2a$10$JxDaTxfmbHwQ/ujrKwbRQegA1ojchupbpBqnX5X2ug5IULn7dWeVC';
+const JSONBIN_BIN_ID_KEY = 'heaven_bin_id'; // stored in localStorage after first creation
 
 const UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
-const LIST_URL   = `https://res.cloudinary.com/${CLOUD_NAME}/image/list/${GALLERY_TAG}.json`;
 
 /* ---------- SERVICE INFO ---------- */
 const serviceInfo = {
-  hair:  { title: 'Hair Styling',      desc: 'Expert cuts, blowouts, and glamour styling tailored to your personal look.',                   wp: 'Hair Styling' },
-  skin:  { title: 'Skin Care & Facials', desc: 'Deep cleansing, glowing facials, and anti-aging treatments for flawless skin.',              wp: 'Skin Care / Facial' },
-  nails: { title: 'Nail Care',          desc: 'Manicures, pedicures, and nail art to complete your polished finish.',                        wp: 'Nail Care' }
+  hair:  { title: 'Hair Styling',       desc: 'Expert cuts, blowouts, and glamour styling tailored to your personal look.',      wp: 'Hair Styling' },
+  skin:  { title: 'Skin Care & Facials', desc: 'Deep cleansing, glowing facials, and anti-aging treatments for flawless skin.',  wp: 'Skin Care / Facial' },
+  nails: { title: 'Nail Care',           desc: 'Manicures, pedicures, and nail art to complete your polished finish.',           wp: 'Nail Care' }
 };
 
 /* ---------- STATE ---------- */
 let pendingFiles    = [];
-let storedPhotos    = [];
+let storedPhotos    = [];   // [{url, public_id, addedAt}, ...]
 let makeupOpen      = false;
-let activeTab       = 'gallery';
 let bookingFormOpen = false;
 let lightboxIndex   = 0;
+
+/* =============================================
+   JSONBIN HELPERS
+   ============================================= */
+const JSONBIN_BASE = 'https://api.jsonbin.io/v3';
+
+async function getBinId() {
+  /* Check if we already created a bin before */
+  let binId = localStorage.getItem(JSONBIN_BIN_ID_KEY);
+  if (binId) return binId;
+
+  /* First time: create a new bin */
+  const res = await fetch(`${JSONBIN_BASE}/b`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Master-Key': JSONBIN_KEY,
+      'X-Bin-Name':   'heaven_makeup_gallery',
+      'X-Bin-Private': 'false'
+    },
+    body: JSON.stringify({ photos: [] })
+  });
+  const data = await res.json();
+  binId = data.metadata.id;
+  localStorage.setItem(JSONBIN_BIN_ID_KEY, binId);
+  return binId;
+}
+
+async function readPhotos() {
+  try {
+    const binId = await getBinId();
+    const res   = await fetch(`${JSONBIN_BASE}/b/${binId}/latest`, {
+      headers: { 'X-Master-Key': JSONBIN_KEY }
+    });
+    const data = await res.json();
+    return data.record.photos || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+async function writePhotos(photos) {
+  const binId = await getBinId();
+  await fetch(`${JSONBIN_BASE}/b/${binId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Master-Key': JSONBIN_KEY
+    },
+    body: JSON.stringify({ photos })
+  });
+}
 
 /* =============================================
    NAV TOGGLE
    ============================================= */
 const navToggle = document.getElementById('navToggle');
 const mainNav   = document.getElementById('mainNav');
-
 navToggle.addEventListener('click', () => mainNav.classList.toggle('open'));
-mainNav.querySelectorAll('a').forEach(link => link.addEventListener('click', () => mainNav.classList.remove('open')));
+mainNav.querySelectorAll('a').forEach(l => l.addEventListener('click', () => mainNav.classList.remove('open')));
 
 /* =============================================
    WHATSAPP
    ============================================= */
-function buildWpUrl(message) {
-  return `https://wa.me/${WP_NUMBER}?text=${encodeURIComponent(message)}`;
+function buildWpUrl(msg) {
+  return `https://wa.me/${WP_NUMBER}?text=${encodeURIComponent(msg)}`;
 }
 
 /* =============================================
@@ -59,9 +112,7 @@ function submitFormWP() {
   const service = document.getElementById('bService').value;
   const date    = document.getElementById('bDate').value;
   const msg     = document.getElementById('bMsg').value.trim();
-
   if (!name || !phone) { showToast('Please enter your name and phone number.'); return; }
-
   const text = [
     `Hi! I'd like to book an appointment at Heaven Beauty Parlour, Kuruda, Baleshwar.`,
     ``,
@@ -71,7 +122,6 @@ function submitFormWP() {
     `*Date:* ${date || 'Flexible'}`,
     msg ? `*Note:* ${msg}` : ''
   ].filter(Boolean).join('\n');
-
   window.open(buildWpUrl(text), '_blank', 'noopener');
 }
 
@@ -84,7 +134,7 @@ function openServicePanel(el) {
   el.classList.add('active');
 
   if (type === 'makeup') {
-    const panel = document.getElementById('makeupPanel');
+    const panel  = document.getElementById('makeupPanel');
     const isOpen = panel.style.display === 'block';
     document.getElementById('svcQuickPanel').style.display = 'none';
     if (isOpen) {
@@ -105,9 +155,8 @@ function openServicePanel(el) {
     document.getElementById('svcPanelTitle').textContent = info.title;
     document.getElementById('svcPanelDesc').textContent  = info.desc;
     const wpBtn = document.getElementById('svcWpBtn');
-    wpBtn.href   = buildWpUrl(`Hi! I'd like to book an appointment for *${info.wp}* at Heaven Beauty Parlour, Kuruda, Baleshwar. Please let me know available slots.`);
-    wpBtn.target = '_blank';
-    wpBtn.rel    = 'noopener';
+    wpBtn.href   = buildWpUrl(`Hi! I'd like to book *${info.wp}* at Heaven Beauty Parlour, Kuruda, Baleshwar. Please share available slots.`);
+    wpBtn.target = '_blank'; wpBtn.rel = 'noopener';
     quickPanel.style.display = 'block';
     setTimeout(() => quickPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
   }
@@ -117,7 +166,6 @@ function openServicePanel(el) {
    TABS
    ============================================= */
 function switchTab(tab) {
-  activeTab = tab;
   document.getElementById('tabGalleryBtn').classList.toggle('active', tab === 'gallery');
   document.getElementById('tabAdminBtn').classList.toggle('active',   tab === 'admin');
   document.getElementById('tabGallery').style.display = tab === 'gallery' ? 'block' : 'none';
@@ -125,34 +173,20 @@ function switchTab(tab) {
 }
 
 /* =============================================
-   CLOUDINARY — LOAD GALLERY
+   LOAD GALLERY FROM JSONBIN
    ============================================= */
 async function loadGallery() {
   const grid = document.getElementById('photoGrid');
   grid.innerHTML = `<div class="loading-photos"><span>⏳ Loading photos…</span></div>`;
-
-  try {
-    const res  = await fetch(`${LIST_URL}?max_results=100&_=${Date.now()}`);
-    if (!res.ok) throw new Error('fetch failed');
-    const data = await res.json();
-
-    storedPhotos = (data.resources || []).map(r => ({
-      public_id: r.public_id,
-      url: `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/q_auto,f_auto,w_800/${r.public_id}`
-    }));
-  } catch (err) {
-    storedPhotos = [];
-  }
-
+  storedPhotos = await readPhotos();
   renderGallery();
 }
 
 /* =============================================
-   CLOUDINARY — RENDER GALLERY
+   RENDER GALLERY
    ============================================= */
 function renderGallery() {
   const grid = document.getElementById('photoGrid');
-
   if (!storedPhotos.length) {
     grid.innerHTML = `
       <div class="empty-gallery">
@@ -162,7 +196,6 @@ function renderGallery() {
       </div>`;
     return;
   }
-
   grid.innerHTML = storedPhotos.map((photo, i) => `
     <div class="photo-item">
       <img src="${photo.url}" alt="Makeup photo ${i + 1}" loading="lazy" onclick="openLightbox(${i})" style="cursor:pointer;" />
@@ -175,14 +208,15 @@ function renderGallery() {
 }
 
 /* =============================================
-   DELETE (hide from view — delete permanently
-   from Cloudinary dashboard)
+   DELETE PHOTO
    ============================================= */
-function deletePhoto(i) {
-  if (!confirm('Hide this photo?\n(To permanently delete, go to your Cloudinary Media Library.)')) return;
+async function deletePhoto(i) {
+  if (!confirm('Remove this photo from the gallery for everyone?')) return;
   storedPhotos.splice(i, 1);
   renderGallery();
-  showToast('Photo hidden. Delete permanently from Cloudinary dashboard.');
+  showToast('Deleting…');
+  await writePhotos(storedPhotos);
+  showToast('Photo deleted for all visitors.');
 }
 
 /* =============================================
@@ -191,73 +225,63 @@ function deletePhoto(i) {
 function sharePhoto(i) {
   const url = storedPhotos[i].url;
   if (navigator.share) {
-    navigator.share({ title: 'Heaven Beauty Parlour – Makeup Look', text: 'Check out this gorgeous look from Heaven Beauty Parlour, Baleshwar! 💄', url }).catch(() => {});
+    navigator.share({ title: 'Heaven Beauty Parlour – Makeup Look', text: 'Check out this gorgeous look from Heaven Beauty Parlour! 💄', url }).catch(() => {});
     return;
   }
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(url).then(() => showToast('Photo link copied! Share it anywhere.')).catch(() => showToast('Could not copy — share the page URL manually.'));
-  } else {
-    showToast('Share this page URL to show off the look!');
+    navigator.clipboard.writeText(url).then(() => showToast('Photo link copied! Share it anywhere.')).catch(() => showToast('Share the page URL manually.'));
   }
 }
 
 /* =============================================
-   ADMIN — FILE PREVIEW
+   FILE PREVIEW (before upload)
    ============================================= */
 function handleFiles(files) {
   pendingFiles = Array.from(files);
   if (!pendingFiles.length) return;
-
   const previewGrid = document.getElementById('previewGrid');
   previewGrid.style.display = 'grid';
   previewGrid.innerHTML = pendingFiles.map((_, i) =>
-    `<div class="preview-thumb"><img id="prev${i}" alt="Preview ${i + 1}" /></div>`
+    `<div class="preview-thumb"><img id="prev${i}" alt="Preview ${i+1}" /></div>`
   ).join('');
-
   pendingFiles.forEach((file, i) => {
-    const reader = new FileReader();
-    reader.onload = e => { const img = document.getElementById('prev' + i); if (img) img.src = e.target.result; };
-    reader.readAsDataURL(file);
+    const r = new FileReader();
+    r.onload = e => { const img = document.getElementById('prev'+i); if(img) img.src = e.target.result; };
+    r.readAsDataURL(file);
   });
-
   document.getElementById('uploadBtn').style.display = 'block';
 }
 
 /* =============================================
-   ADMIN — UPLOAD TO CLOUDINARY
+   UPLOAD TO CLOUDINARY → SAVE URL TO JSONBIN
    ============================================= */
 async function uploadPhotos() {
   if (!pendingFiles.length) return;
-
   const btn = document.getElementById('uploadBtn');
   btn.disabled = true;
-
   let uploaded = 0;
   const errors = [];
 
   for (const file of pendingFiles) {
     btn.textContent = `Uploading ${uploaded + 1} / ${pendingFiles.length}…`;
-    const formData = new FormData();
-    formData.append('file',          file);
-    formData.append('upload_preset', UPLOAD_PRESET);
-    formData.append('tags',          GALLERY_TAG);
-    formData.append('folder',        'heaven_beauty');
-
+    const fd = new FormData();
+    fd.append('file',          file);
+    fd.append('upload_preset', UPLOAD_PRESET);
+    fd.append('folder',        'heaven_beauty');
     try {
-      const res  = await fetch(UPLOAD_URL, { method: 'POST', body: formData });
+      const res  = await fetch(UPLOAD_URL, { method: 'POST', body: fd });
       const data = await res.json();
       if (data.secure_url) {
-        storedPhotos.push({
-          public_id: data.public_id,
-          url: `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/q_auto,f_auto,w_800/${data.public_id}`
-        });
+        storedPhotos.push({ url: data.secure_url, public_id: data.public_id, addedAt: Date.now() });
         uploaded++;
-      } else {
-        errors.push(file.name);
-      }
-    } catch (e) {
-      errors.push(file.name);
-    }
+      } else { errors.push(file.name); }
+    } catch(e) { errors.push(file.name); }
+  }
+
+  /* Save all URLs to JSONBin so everyone sees them */
+  if (uploaded > 0) {
+    btn.textContent = 'Saving to cloud database…';
+    await writePhotos(storedPhotos);
   }
 
   /* Reset UI */
@@ -269,12 +293,10 @@ async function uploadPhotos() {
   document.getElementById('photoInput').value          = '';
   pendingFiles = [];
 
-  if (errors.length) {
-    showToast(`${uploaded} uploaded. ${errors.length} failed — check file size.`);
-  } else {
-    showToast(`${uploaded} photo(s) uploaded! Visible to ALL visitors now. 🎉`);
-  }
-
+  showToast(errors.length
+    ? `${uploaded} uploaded, ${errors.length} failed.`
+    : `${uploaded} photo(s) live! Visible to ALL visitors now. 🎉`
+  );
   switchTab('gallery');
   renderGallery();
 }
@@ -288,40 +310,32 @@ function openLightbox(i) {
   document.getElementById('lightboxOverlay').classList.add('active');
   document.body.style.overflow = 'hidden';
 }
-
 function closeLightbox() {
   document.getElementById('lightboxOverlay').classList.remove('active');
   document.body.style.overflow = '';
 }
-
 function updateLightbox() {
   const photo = storedPhotos[lightboxIndex];
   const img   = document.getElementById('lightboxImg');
-  img.style.animation = 'none';
-  img.offsetHeight;
-  img.style.animation = '';
+  img.style.animation = 'none'; img.offsetHeight; img.style.animation = '';
   img.src = photo.url;
   img.alt = `Makeup photo ${lightboxIndex + 1}`;
   document.getElementById('lightboxCounter').textContent = `${lightboxIndex + 1} / ${storedPhotos.length}`;
-  const showArrows = storedPhotos.length > 1;
-  document.getElementById('lightboxPrev').style.display = showArrows ? 'flex' : 'none';
-  document.getElementById('lightboxNext').style.display = showArrows ? 'flex' : 'none';
+  const show = storedPhotos.length > 1;
+  document.getElementById('lightboxPrev').style.display = show ? 'flex' : 'none';
+  document.getElementById('lightboxNext').style.display = show ? 'flex' : 'none';
 }
-
-function lightboxNav(direction) {
-  lightboxIndex = (lightboxIndex + direction + storedPhotos.length) % storedPhotos.length;
+function lightboxNav(dir) {
+  lightboxIndex = (lightboxIndex + dir + storedPhotos.length) % storedPhotos.length;
   updateLightbox();
 }
-
 function lightboxBgClick(e) {
-  if (e.target === document.getElementById('lightboxOverlay') || e.target === document.getElementById('lightboxImgWrap')) {
-    closeLightbox();
-  }
+  if (e.target === document.getElementById('lightboxOverlay') ||
+      e.target === document.getElementById('lightboxImgWrap')) closeLightbox();
 }
-
 document.addEventListener('keydown', e => {
-  const overlay = document.getElementById('lightboxOverlay');
-  if (!overlay.classList.contains('active')) return;
+  const ov = document.getElementById('lightboxOverlay');
+  if (!ov.classList.contains('active')) return;
   if      (e.key === 'ArrowRight') lightboxNav(1);
   else if (e.key === 'ArrowLeft')  lightboxNav(-1);
   else if (e.key === 'Escape')     closeLightbox();
@@ -331,20 +345,19 @@ document.addEventListener('keydown', e => {
    TOAST
    ============================================= */
 let toastTimer = null;
-function showToast(message) {
-  const toast = document.getElementById('toast');
-  toast.textContent   = message;
-  toast.style.display = 'block';
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
   if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { toast.style.display = 'none'; }, 3500);
+  toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3500);
 }
 
 /* =============================================
    SMOOTH SCROLL
    ============================================= */
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', function (e) {
-    const target = document.querySelector(this.getAttribute('href'));
-    if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', function(e) {
+    const t = document.querySelector(this.getAttribute('href'));
+    if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth' }); }
   });
 });
