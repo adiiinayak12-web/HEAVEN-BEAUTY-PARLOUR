@@ -93,37 +93,14 @@
         <div class="makeup-panel" id="makeupPanel" style="display:none;">
           <div class="makeup-panel-header">
             <h3>Makeup Artistry Gallery</h3>
-            <div class="panel-tabs">
-              <button class="tab-btn active" id="tabGalleryBtn" onclick="switchTab('gallery')">Gallery</button>
-              <button class="tab-btn" id="tabAdminBtn" onclick="switchTab('admin')">Admin Upload</button>
-            </div>
           </div>
 
           <!-- GALLERY VIEW -->
-          <div id="tabGallery">
-            <div class="gallery-photos" id="photoGrid">
-              <div class="empty-gallery">
-                <div class="empty-icon">&#127752;</div>
-                <p>No makeup photos yet.</p>
-                <p class="empty-hint">Switch to Admin Upload tab to add your photos.</p>
-              </div>
-            </div>
-            <div class="panel-cta">
-              <a class="btn btn-primary" href="https://wa.me/919853448984?text=Hi!%20I'd%20like%20to%20book%20a%20*Makeup%20Artistry*%20appointment%20at%20Heaven%20Beauty%20Parlour.%20Please%20let%20me%20know%20available%20slots." target="_blank" rel="noopener">Book Makeup via WhatsApp</a>
-            </div>
+          <div id="photoGrid" class="gallery-photos">
+            <!-- Photos hardcoded in script.js -->
           </div>
-
-          <!-- ADMIN UPLOAD VIEW -->
-          <div id="tabAdmin" style="display:none;">
-            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('photoInput').click()">
-              <input type="file" id="photoInput" multiple accept="image/*" onchange="handleFiles(this.files)" />
-              <div class="upload-icon">&#128247;</div>
-              <p>Click to select makeup photos</p>
-              <p class="upload-hint">JPG, PNG, WEBP &bull; Multiple files allowed</p>
-            </div>
-            <div class="preview-grid" id="previewGrid" style="display:none;"></div>
-            <button class="btn btn-primary upload-confirm-btn" id="uploadBtn" style="display:none;" onclick="uploadPhotos()">Save Photos to Gallery</button>
-            <p class="upload-note">Photos upload to the cloud — visible to ALL visitors instantly.</p>
+          <div class="panel-cta">
+            <a class="btn btn-primary" href="https://wa.me/919853448984?text=Hi!%20I'd%20like%20to%20book%20a%20*Makeup%20Artistry*%20appointment%20at%20Heaven%20Beauty%20Parlour.%20Please%20let%20me%20know%20available%20slots." target="_blank" rel="noopener">Book Makeup via WhatsApp</a>
           </div>
         </div>
 
